@@ -1,0 +1,183 @@
+ drop database shoes_company;
+ create database shoes_company;
+ use shoes_company;
+
+CREATE TABLE roles (
+	id_rol int primary key not null auto_increment,
+	rol_nombre varchar(30),
+	creation_at timestamp default current_timestamp,
+	update_at timestamp null,
+	delete_at timestamp null
+);
+
+ create table usuarios (
+	id_usuario int primary key not null auto_increment ,
+	email varchar(50) not null,
+	pwd varchar(50) not null,
+    estado boolean,
+    pwd_cambio boolean,
+    id_rol int not null,
+	foreign key (id_rol) references roles(id_rol),
+	creation_at timestamp default current_timestamp,
+	update_at timestamp null,
+	delete_at timestamp null
+);
+
+CREATE TABLE datos_usuarios (
+	id_datousuario int primary key not null auto_increment,
+    usuario_id int not null, -- llave foranea de la tabla usuarios
+	nombre varchar(40) not null,
+    apellido varchar(40),
+	direccion varchar(50) not null,
+	telefono int(10) not null,
+	fecha_nacimiento timestamp,
+    tipo_documento varchar(5),
+    num_documento int(14),
+	creation_at timestamp default current_timestamp,
+	update_at timestamp null,
+	delete_at timestamp null,
+    foreign key (usuario_id) references usuarios(id_usuario)
+);
+
+CREATE TABLE locales (
+	id_local int primary key not null auto_increment,
+    usuario_id int not null,
+	nombre varchar(40) not null,
+	direccion varchar(30) not null,
+	telefono int(11) not null,
+    nit varchar(9)not null,
+	creation_at timestamp default current_timestamp,
+	update_at timestamp null,
+	delete_at timestamp null,
+	foreign key (usuario_id) references usuarios(id_usuario)
+);
+
+CREATE TABLE categorias (
+    id_categoria int primary key not null auto_increment,
+	local_id int not null,
+    categoria varchar(25),
+    foreign key(local_id) references locales(id_local)
+);
+
+CREATE TABLE tallas(
+    id_talla int primary key not null auto_increment,
+    local_id int not null,
+    talla int(2),
+    foreign key(local_id) references locales(id_local)
+);
+
+CREATE TABLE productos (
+	id_producto int primary key not null auto_increment,
+	local_id int not null,
+    categoria_id int not null,
+    talla_id int not null,
+	nombre_producto VARCHAR(50),
+	precio decimal(7, 3 ),
+	color varchar(9),
+	marca varchar(15),
+	genero varchar(10),
+	disponible int,
+	creation_at timestamp default current_timestamp,
+	update_at timestamp null,
+	delete_at timestamp null,
+	foreign key(talla_id) references tallas(id_talla),
+    foreign key(categoria_id) references categorias(id_categoria),
+    foreign key(local_id) references locales(id_local)
+);
+
+CREATE TABLE producto_imgs (
+	id_img int primary key not null auto_increment unique,
+	image_path varchar(255) not null,
+	created datetime not null,
+	producto_id int not null,
+	foreign key (producto_id) references productos(id_producto)
+);
+
+
+CREATE TABLE ofertas (
+	id_oferta int primary key not null auto_increment,
+	producto_id int not null,
+	tipo_oferta varchar(50),
+	descuento decimal(10, 2),
+	start_date date not null,
+	end_date date not null,
+    foreign key (producto_id) references productos(id_producto)
+);
+
+CREATE TABLE cupones (
+	id_cupon int primary key not null auto_increment,
+	producto_id int not null,
+	codigo varchar(50) not null,
+	descuento decimal(10, 2),
+	start_date date not null,
+	end_date date not null,
+    foreign key (producto_id) references productos(id_producto)
+);
+
+CREATE TABLE articulos_carritos (
+	id_articulo int primary key not null auto_increment,
+	producto_id int,
+	datousuario_id int not null,
+	cantidad int,
+	precio decimal(6, 2),
+    impuesto decimal(10,2),
+	total decimal(10, 2),
+	creation_at timestamp default current_timestamp,
+	update_at timestamp null,
+	delete_at timestamp null,
+	foreign key (datousuario_id) references datos_usuarios(id_datousuario),
+	foreign key (producto_id) references productos(id_producto)
+);
+
+CREATE TABLE pedidos (
+	id_pedido int primary key not null auto_increment unique,
+	articulo_id int not null,
+	datousuario_id int not null,
+	pedido_fecha date not null,
+	estado boolean,
+    creation_at timestamp default current_timestamp,
+	update_at timestamp null,
+	delete_at timestamp null,
+	foreign key (datousuario_id) references datos_usuarios(id_datousuario),
+	foreign key (articulo_id) references articulos_carritos(id_articulo)
+);
+
+create table pqrs_informacion (
+    id_pqr int primary key auto_increment,
+	local_id int not null,
+	datousuario_id int not null,
+    tipo_peticion varchar (255) not null, 
+    descripccion varchar (255) not null,
+    archivo varchar (255),
+    estado boolean not null, 
+    tiempo_restante timestamp not null, 
+    fecha_de_respuesta timestamp not null,
+    create_at timestamp not null, 
+    update_at timestamp, 
+    delete_at timestamp,
+	foreign key(local_id) references locales(id_local),
+	foreign key (datousuario_id) references datos_usuarios(id_datousuario)
+);
+
+CREATE TABLE pqrs_respuesta(
+	id_pqr_respuesta int primary key not null auto_increment,
+	pqr_id int not null,
+	despcripcion_respues varchar(255),
+	estado boolean,
+	fecha_de_respuesta timestamp not null,
+	create_at timestamp not null, 
+	update_at timestamp, 
+	delete_at timestamp,
+	foreign key(pqr_id) references pqrs_informacion(id_pqr)
+);
+
+/*CREATE TABLE vendor_productos (
+	id int primary key not null auto_increment unique,
+	vendor_id int,
+	producto_id int,
+	creation_at timestamp default current_timestamp,
+	update_at timestamp null,
+	delete_at timestamp null,
+	foreign key (vendor_id) references vendedores(id_vendedor),
+	foreign key (producto_id) references productos(id_producto)
+);*/
